@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: teg
+      POSTGRES_PASSWORD: teg
+      POSTGRES_DB: teg
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U teg"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+
+  # Dashboard web (React + API Hono). `docker compose up`
+  # Migre + seed la base (depuis data/ si vide), puis sert.
+  dashboard:
+    build: .
+    command: sh -c "npm run db:setup && npm run serve"
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - DATABASE_URL=postgres://teg:teg@postgres:5432/teg
+      # Source des taux : par défaut l'API publique BCE (aucune clé). Override optionnel.
+      - RATE_SOURCE_URL=${RATE_SOURCE_URL:-}
+      - RATE_SOURCE_KEY=${RATE_SOURCE_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data # sources de seed (loan.json / rates.json / tableau.csv)
+
+  # Collecte one-shot des taux (pour un cron). `docker compose run --rm collect`
+  collect:
+    build: .
+    profiles: ["tools"]
+    command: npm run collect
+    environment:
+      - DATABASE_URL=postgres://teg:teg@postgres:5432/teg
+      - RATE_SOURCE_URL=${RATE_SOURCE_URL:-}
+      - RATE_SOURCE_KEY=${RATE_SOURCE_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:

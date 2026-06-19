@@ -1,0 +1,43 @@
+{
+  "name": "teg-tracker",
+  "version": "0.1.0",
+  "description": "Suivi des taux de crédit immobilier et aide à la renégociation (PTZ + classique)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "typecheck:web": "tsc -p web/tsconfig.json",
+    "build:web": "vite build",
+    "dev:web": "vite",
+    "db:setup": "tsx src/adapters/driving/cli/db-setup.ts",
+    "import:loan": "tsx src/adapters/driving/cli/import-loan.ts",
+    "import:schedule": "tsx src/adapters/driving/cli/import-schedule.ts",
+    "import:all": "npm run import:loan && npm run import:schedule && npm run collect",
+    "collect": "tsx src/adapters/driving/cli/collect.ts",
+    "verdict": "tsx src/adapters/driving/cli/verdict.ts",
+    "serve": "tsx src/adapters/driving/cli/serve.ts"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.0",
+    "@swan-io/boxed": "^3.2.0",
+    "hono": "^4.6.0",
+    "kysely": "^0.29.2",
+    "pg": "^8.22.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "tsx": "^4.19.0",
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.0.0",
+    "@types/pg": "^8.20.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^4.7.0",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.0"
+  }
+}

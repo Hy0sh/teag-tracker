@@ -1,0 +1,6 @@
+node_modules/
+dist/
+*.log
+data/rates.json
+data/loan.json
+data/tableau.csv

@@ -1,0 +1,14 @@
+{
+  "tranches": [
+    { "type": "PTZ", "principal": 40000, "nominalRate": 0, "termMonths": 240 },
+    { "type": "STANDARD", "principal": 160000, "nominalRate": 3.5, "termMonths": 240 }
+  ],
+  "upfrontFees": 3000,
+  "monthlyInsurance": 30,
+  "renegotiation": {
+    "currentMonth": 24,
+    "scenario": "EXTERNAL",
+    "fees": { "origination": 1000, "guarantee": 2000, "amendment": 500 },
+    "threshold": { "minNetSavings": 3000, "minRateGap": 0.7 }
+  }
+}
