@@ -17,7 +17,8 @@ services:
   # Migre + seed la base (depuis data/ si vide), puis sert.
   dashboard:
     build: .
-    command: sh -c "npm run db:setup && npm run serve"
+    # migration (obligatoire) -> collecte des derniers taux (best-effort) -> serveur
+    command: sh -c "npm run db:setup && (npm run collect || echo 'Collecte au démarrage échouée — on continue') && npm run serve"
     ports:
       - "3000:3000"
     environment:
