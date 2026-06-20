@@ -6,6 +6,7 @@ import type { Verdict } from "./types/verdict";
 import type { VerdictResponse } from "./types/verdict-response";
 import type { EarlyRepaymentResult } from "./types/early-repayment-result";
 import type { RepaymentMode } from "./types/repayment-mode";
+import type { BorrowingCapacityResult } from "./types/borrowing-capacity-result";
 
 /** Wraps fetch into a Boxed Future<Result<T, string>> — no thrown exceptions leak to the UI. */
 const request = <T>(url: string, init?: RequestInit): Future<Result<T, string>> =>
@@ -42,6 +43,20 @@ export const earlyRepayment = (
   payload: EarlyRepaymentPayload,
 ): Future<Result<EarlyRepaymentResult, string>> =>
   request<EarlyRepaymentResult>("/api/early-repayment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+export const computeCapacity = (payload: {
+  monthlyIncome: number;
+  existingMonthlyDebt: number;
+  annualRatePercent: number;
+  termMonths: number;
+  maxDebtRatioPercent: number;
+  desiredAmount?: number;
+}): Future<Result<BorrowingCapacityResult, string>> =>
+  request<BorrowingCapacityResult>("/api/capacity", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),

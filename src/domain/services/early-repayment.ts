@@ -5,6 +5,10 @@ import type { EarlyRepaymentInput } from "./early-repayment-input";
 import type { EarlyRepaymentResult } from "../model/early-repayment-result";
 import type { AmortizationSchedule } from "./amortization-schedule";
 
+/** Total interest of a level-payment schedule. */
+const scheduleInterest = (principal: number, rateBp: number, months: number): number =>
+  generateSchedule(principal, rateBp, months).rows.reduce((s, r) => s + r.interestPart, 0);
+
 /** Term (in months) needed to amortize `outstanding` at `rateBp` while keeping `payment`. */
 const termForPayment = (outstanding: number, rateBp: number, payment: number): number => {
   const t = bpToFraction(rateBp) / 12;
@@ -16,10 +20,18 @@ const termForPayment = (outstanding: number, rateBp: number, payment: number): n
  * Simulates a partial early repayment of principal on the standard tranche, at the current rate.
  * REDUCE_PAYMENT keeps the remaining term and lowers the monthly payment.
  * REDUCE_TERM keeps the (level-equivalent) monthly payment and shortens the term.
+ *
+ * The baseline (no repayment) and the post-repayment scenario are BOTH computed with the same
+ * level-payment method, so the interest saved isolates the effect of the lump sum (a 0 lump saves 0).
  */
 export const simulateEarlyRepayment = (input: EarlyRepaymentInput): EarlyRepaymentResult => {
   const newOutstanding = Math.max(0, input.outstandingPrincipal - input.lumpSum);
   const ira = earlyRepaymentFee(input.lumpSum, input.currentRateBp);
+  const baselineInterest = scheduleInterest(
+    input.outstandingPrincipal,
+    input.currentRateBp,
+    input.remainingMonths,
+  );
 
   let newMonthlyPayment: number;
   let newTermMonths: number;
@@ -32,11 +44,7 @@ export const simulateEarlyRepayment = (input: EarlyRepaymentInput): EarlyRepayme
   } else if (input.mode === "REDUCE_PAYMENT") {
     newTermMonths = input.remainingMonths;
     newMonthlyPayment = monthlyPayment(newOutstanding, input.currentRateBp, input.remainingMonths);
-    newRemainingInterest = generateSchedule(
-      newOutstanding,
-      input.currentRateBp,
-      input.remainingMonths,
-    ).rows.reduce((s, r) => s + r.interestPart, 0);
+    newRemainingInterest = scheduleInterest(newOutstanding, input.currentRateBp, input.remainingMonths);
   } else {
     const keptPayment = monthlyPayment(
       input.outstandingPrincipal,
@@ -48,14 +56,14 @@ export const simulateEarlyRepayment = (input: EarlyRepaymentInput): EarlyRepayme
     newRemainingInterest = Math.max(0, keptPayment * newTermMonths - newOutstanding);
   }
 
-  const interestSaved = input.currentRemainingInterest - newRemainingInterest;
+  const interestSaved = baselineInterest - newRemainingInterest;
 
   return {
     mode: input.mode,
     lumpSum: input.lumpSum,
     ira,
     newOutstanding,
-    currentRemainingInterest: input.currentRemainingInterest,
+    currentRemainingInterest: baselineInterest,
     newRemainingInterest,
     interestSaved,
     netSaving: interestSaved - ira,

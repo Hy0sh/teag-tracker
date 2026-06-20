@@ -6,7 +6,6 @@ export type EarlyRepaymentInput = {
   outstandingPrincipal: Cents;
   currentRateBp: BasisPoints;
   remainingMonths: number;
-  currentRemainingInterest: Cents;
   lumpSum: Cents;
   mode: RepaymentMode;
 };

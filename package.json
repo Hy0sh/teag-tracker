@@ -11,6 +11,7 @@
     "typecheck:web": "tsc -p web/tsconfig.json",
     "build:web": "vite build",
     "dev:web": "vite",
+    "dev:serve": "tsx watch src/adapters/driving/cli/serve.ts",
     "db:setup": "tsx src/adapters/driving/cli/db-setup.ts",
     "import:loan": "tsx src/adapters/driving/cli/import-loan.ts",
     "import:schedule": "tsx src/adapters/driving/cli/import-schedule.ts",

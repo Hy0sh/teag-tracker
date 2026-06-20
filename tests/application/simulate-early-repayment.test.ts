@@ -4,6 +4,7 @@ import { makeSimulateEarlyRepayment } from "../../src/application/use-cases/simu
 import type { Loan } from "../../src/domain/model/loan";
 import type { LoanConfigPort } from "../../src/application/ports/loan-config.port";
 import type { AmortizationSchedulePort } from "../../src/application/ports/amortization-schedule.port";
+import type { AmortizationSchedule } from "../../src/domain/services/amortization-schedule";
 import { toCents } from "../../src/domain/money";
 import { percentToBp } from "../../src/domain/rate";
 import { earlyRepaymentFee } from "../../src/domain/services/renegotiation";
@@ -37,6 +38,29 @@ describe("simulate-early-repayment use case", () => {
         expect(r.newMonthlyPayment).toBe(monthlyPayment(principal - lumpSum, rate, 240));
         expect(r.interestSaved).toBeGreaterThan(0);
         expect(r.netSaving).toBe(r.interestSaved - r.ira);
+      },
+      Error: (e) => expect.unreachable(`expected Ok, got Error: ${JSON.stringify(e)}`),
+    });
+  });
+
+  it("a zero lump sum saves nothing, even when the real schedule is modular (consistent baseline)", async () => {
+    // Real schedule whose interest does NOT match a level recompute (modular-like).
+    const schedule: AmortizationSchedule = {
+      rows: [
+        { month: 1, payment: 5_000, principalPart: 1_000, interestPart: 4_000, outstandingPrincipal: 99_000 },
+        { month: 2, payment: 5_000, principalPart: 1_000, interestPart: 4_000, outstandingPrincipal: 98_000 },
+      ],
+    };
+    const provider: AmortizationSchedulePort = () => Future.value(Result.Ok(Option.Some(schedule)));
+    const simulate = makeSimulateEarlyRepayment({ loanConfig: fakeLoan, scheduleProvider: provider });
+
+    const res = await simulate({ currentMonth: 1, lumpSum: 0, mode: "REDUCE_PAYMENT" }).toPromise();
+
+    res.match({
+      Ok: (r) => {
+        expect(r.ira).toBe(0);
+        expect(r.interestSaved).toBe(0);
+        expect(r.netSaving).toBe(0);
       },
       Error: (e) => expect.unreachable(`expected Ok, got Error: ${JSON.stringify(e)}`),
     });

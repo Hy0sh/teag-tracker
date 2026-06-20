@@ -32,7 +32,6 @@ export const makeApplyEarlyRepayment =
           outstandingPrincipal: position.outstandingPrincipal,
           currentRateBp: position.tranche.nominalRateBp,
           remainingMonths: position.remainingMonths,
-          currentRemainingInterest: position.remainingInterest,
           lumpSum: input.lumpSum,
           mode: input.mode,
         };

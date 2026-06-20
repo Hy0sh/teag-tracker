@@ -7,14 +7,16 @@ import { ScheduleChart } from "./components/ScheduleChart";
 import { VerdictSummary } from "./components/VerdictSummary";
 import { SimulationForm } from "./components/SimulationForm";
 import { EarlyRepaymentForm } from "./components/EarlyRepaymentForm";
+import { CapacityForm } from "./components/CapacityForm";
 
-type Tab = "overview" | "schedule" | "renegotiate" | "repay";
+type Tab = "overview" | "schedule" | "renegotiate" | "repay" | "capacity";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "overview", label: "Synthèse" },
   { id: "schedule", label: "Mensualités" },
   { id: "renegotiate", label: "Renégociation" },
   { id: "repay", label: "Remboursement anticipé" },
+  { id: "capacity", label: "Capacité d'emprunt" },
 ];
 
 export const App = () => {
@@ -22,6 +24,19 @@ export const App = () => {
   const rates = useFuture(fetchRates, []);
   const verdict = useFuture(fetchVerdict, []);
   const schedule = useFuture(fetchSchedule, []);
+
+  const defaultRatePercent = rates.match({
+    NotAsked: () => "3.50",
+    Loading: () => "3.50",
+    Done: (r) =>
+      r.match({
+        Ok: (d) => {
+          const last = d.at(-1);
+          return last ? (last.rateBp / 100).toFixed(2) : "3.50";
+        },
+        Error: () => "3.50",
+      }),
+  });
 
   return (
     <main className="container">
@@ -98,6 +113,8 @@ export const App = () => {
       {tab === "renegotiate" && <SimulationForm />}
 
       {tab === "repay" && <EarlyRepaymentForm />}
+
+      {tab === "capacity" && <CapacityForm defaultRatePercent={defaultRatePercent} />}
     </main>
   );
 };

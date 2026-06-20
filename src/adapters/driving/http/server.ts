@@ -4,6 +4,8 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { buildApp } from "../../../composition-root";
 import type { SimulateInput } from "../../../application/use-cases/simulate-input";
 import { toCents } from "../../../domain/money";
+import { percentToBp } from "../../../domain/rate";
+import { computeBorrowingCapacity } from "../../../domain/services/borrowing-capacity";
 
 export const buildHttpApp = (): Hono => {
   const app = buildApp();
@@ -103,6 +105,19 @@ export const buildHttpApp = (): Hono => {
       Ok: (r) => c.json(r),
       Error: (e) => c.json({ error: e.message }, 500),
     });
+  });
+
+  api.post("/api/capacity", async (c) => {
+    const body = (await c.req.json().catch(() => ({}))) as Record<string, unknown>;
+    const result = computeBorrowingCapacity({
+      monthlyIncome: toCents(Number(body.monthlyIncome)),
+      existingMonthlyDebt: toCents(Number(body.existingMonthlyDebt)),
+      annualRateBp: percentToBp(Number(body.annualRatePercent)),
+      termMonths: Number(body.termMonths),
+      maxDebtRatioBp: percentToBp(Number(body.maxDebtRatioPercent ?? 35)),
+      ...(body.desiredAmount ? { desiredAmount: toCents(Number(body.desiredAmount)) } : {}),
+    });
+    return c.json(result);
   });
 
   // Serve the built React dashboard (web/dist) for everything else.
