@@ -1,5 +1,5 @@
 import { AsyncData, type Result } from "@swan-io/boxed";
-import { type FormEvent, useState } from "react";
+import { type SyntheticEvent, useState } from "react";
 import { applyEarlyRepayment, earlyRepayment } from "../api-client";
 import type { EarlyRepaymentResult } from "../types/early-repayment-result";
 import type { RepaymentMode } from "../types/repayment-mode";
@@ -16,7 +16,7 @@ export const EarlyRepaymentForm = () => {
     AsyncData.NotAsked(),
   );
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
     const payload = { lumpSum: Number(amount), mode };
 

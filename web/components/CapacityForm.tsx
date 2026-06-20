@@ -1,5 +1,5 @@
 import { AsyncData, type Result } from "@swan-io/boxed";
-import { type FormEvent, useState } from "react";
+import { type SyntheticEvent, useState } from "react";
 import { computeCapacity } from "../api-client";
 import type { BorrowingCapacityResult } from "../types/borrowing-capacity-result";
 import { CapacitySummary } from "./CapacitySummary";
@@ -15,7 +15,7 @@ export const CapacityForm = ({ defaultRatePercent }: { defaultRatePercent: strin
     AsyncData.NotAsked(),
   );
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
     setResult(AsyncData.Loading());
     const desiredAmount = desired.trim() === "" ? undefined : Number(desired);

@@ -1,5 +1,5 @@
 import { AsyncData, type Result } from "@swan-io/boxed";
-import { type FormEvent, useState } from "react";
+import { type SyntheticEvent, useState } from "react";
 import { simulate } from "../api-client";
 import type { Scenario } from "../types/scenario";
 import type { Verdict } from "../types/verdict";
@@ -11,7 +11,7 @@ export const SimulationForm = () => {
   const [scenario, setScenario] = useState<Scenario>("EXTERNAL");
   const [result, setResult] = useState<AsyncData<Result<Verdict, string>>>(AsyncData.NotAsked());
 
-  const onSubmit = (e: FormEvent) => {
+  const onSubmit = (e: SyntheticEvent) => {
     e.preventDefault();
     setResult(AsyncData.Loading());
     const offeredRateBp = Math.round(Number.parseFloat(ratePercent) * 100);
